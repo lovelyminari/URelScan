@@ -30,9 +30,9 @@ public class FileExceptTest {
         log.info("모델 빌드까지 실행 완료.");
 
         Factory factory = launcher.getFactory();
-        CtClass<?> aClass = factory.Class().get("com.lguplus.ncube.nucm.online.rvspvs.repository.OcmpTrmDvchLikgMRepository");
+        CtClass<?> aClass = factory.Class().get("com.lguplus.ncube.nucm.online.rvspvs.entity.OcmpTrmDvchLikgMEntity");
 
-        Assertions.assertEquals("OcmpTrmDvchLikgMRepository", aClass.getSimpleName());
+        Assertions.assertEquals("OcmpTrmDvchLikgMEntity", aClass.getSimpleName());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class FileExceptTest {
         log.info("모델 빌드까지 실행 완료.");
 
         Factory factory = launcher.getFactory();
-        CtClass<?> aClass = factory.Class().get("com.lguplus.ncube.nucm.online.rvspvs.repository.OcmpTrmDvchLikgMRepository");
+        CtClass<?> aClass = factory.Class().get("com.lguplus.ncube.nucm.online.rvspvs.entity.OcmpTrmDvchLikgMEntity");
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             aClass.getSimpleName();
