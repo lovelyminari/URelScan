@@ -12,6 +12,7 @@ import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtScanner;
 import spoon.reflect.visitor.filter.TypeFilter;
+import spoon.support.compiler.jdt.CompilationUnitFilter;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -26,10 +27,10 @@ public class Main {
         //0. nucm-svc 참조할 수 있는가? (1개의 java 파일로만 테스트)
         //number_zero();
 
-        //1. 어떤 서비스 메소드가 있을 때, 이 서비스 메소드를 참조하는 다른 서비스들을 찾아서 출력하기
+        //1. 어떤 서비스 메소드가 있을 때, 이 서비스 메소드를 참조하는 다른 서비스/컨트롤러들을 찾아서, 결국 어떤 API에 영향이 있는지 찾아서 출력하기
         number_one();
 
-        //2. 어떤 서비스 메소드를 수정하면, 어떤 API에 영향이 있는지 찾아서 출력하기
+        //2. 특정 파일을 제외하고 AST 모델 만들기
 
     }
 
@@ -90,6 +91,7 @@ public class Main {
             return parent;
         }).collect(Collectors.toList());
 
+        CtTypeReference<? extends Annotation> requestAnnotation = factory.Type().createReference("org.springframework.web.bind.annotation.RequestMapping");
         CtTypeReference<? extends Annotation> getAnnotation = factory.Type().createReference("org.springframework.web.bind.annotation.GetMapping");
         CtTypeReference<? extends Annotation> postAnnotation = factory.Type().createReference("org.springframework.web.bind.annotation.PostMapping");
 
@@ -102,12 +104,20 @@ public class Main {
                     CtMethod method = callers.get(i);
                     if (method.getSignature().equals(executable.getSignature())) {
                         CtMethod parent = invocation.getParent(CtMethod.class);
+                        CtClass parentClss = invocation.getParent(CtClass.class);
+                        log.info("Controller = {}", parentClss.getSimpleName());
+                        CtAnnotation<? extends Annotation> requestCtAnnotation = parentClss.getAnnotation(requestAnnotation);
+                        String subDomain = requestCtAnnotation.getValue("value").toString();
                         CtAnnotation<? extends Annotation> getCtAnnotation = parent.getAnnotation(getAnnotation);
                         CtAnnotation<? extends Annotation> postCtAnnotation = parent.getAnnotation(postAnnotation);
                         if (getCtAnnotation != null) {
-                            System.out.println(method.getMetadata("OcmpTrmDvchLikgMService") + " -> " + getCtAnnotation.getValue("value").toString());
+                            String uri = subDomain + getCtAnnotation.getValue("value").toString();
+                            uri = uri.replace("\"", "");
+                            System.out.println(method.getMetadata("OcmpTrmDvchLikgMService") + " -> " + uri);
                         } else if (postCtAnnotation != null) {
-                            System.out.println(method.getMetadata("OcmpTrmDvchLikgMService") + " -> " + postCtAnnotation.getValue("value").toString());
+                            String uri = subDomain + postCtAnnotation.getValue("value").toString();
+                            uri = uri.replace("\"", "");
+                            System.out.println(method.getMetadata("OcmpTrmDvchLikgMService") + " -> " + uri);
                         }
                     }
                 }
@@ -116,6 +126,8 @@ public class Main {
         });
 
     }
+
+
 
 
 }
