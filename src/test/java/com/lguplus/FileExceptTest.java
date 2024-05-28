@@ -36,7 +36,7 @@ public class FileExceptTest {
     }
 
     @Test
-    public void test_서비스상위모델빌드() {
+    public void test_서비스상위모델빌드_FilteringFolder() {
         String filePath = "/Users/seonmiji/IdeaProjects/nucm-svc-master/src/main/java/com/lguplus/ncube/nucm/online";
         Launcher launcher = new Launcher();
         // launcher.addInputResource(filePath);
@@ -46,6 +46,32 @@ public class FileExceptTest {
         FilteringFolder resource = new FilteringFolder();
         resource.addFolder(new FileSystemFolder(filePath));
         resource.removeAllThatMatch(".*/repository/.*|.*/entity/.*");
+        smb.addInputSource(resource);
+        log.info("파일 로드까지 실행 완료.");
+
+        launcher.getEnvironment().setNoClasspath(true);
+        launcher.getEnvironment().setComplianceLevel(8);
+        CtModel model = launcher.buildModel();
+        log.info("모델 빌드까지 실행 완료.");
+
+        Factory factory = launcher.getFactory();
+        CtClass<?> aClass = factory.Class().get("com.lguplus.ncube.nucm.online.rvspvs.entity.OcmpTrmDvchLikgMEntity");
+
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            aClass.getSimpleName();
+        });
+
+    }
+
+    @Test
+    public void test_서비스상위모델빌드_ResourceFilter() {
+        String filePath = "/Users/seonmiji/IdeaProjects/nucm-svc-master/src/main/java/com/lguplus/ncube/nucm/online";
+        Launcher launcher = new Launcher();
+
+        // Service 하위 layer는 무시하기
+        SpoonModelBuilder smb = launcher.getModelBuilder();
+        ResourceFilter resource = new ResourceFilter(new FileSystemFolder(filePath));
+        //resource.addFolder(new FileSystemFolder(filePath));
         smb.addInputSource(resource);
         log.info("파일 로드까지 실행 완료.");
 
