@@ -136,7 +136,9 @@ public class MethodCallTest {
         };
 
         cuList.forEach(cu -> {
-            System.out.println(cu.getClass().getName());
+            cu.getTypes().stream().forEach(type -> {
+                System.out.println(type.getNameAsString());
+            });
             visitor.visit(cu, mdFound);
         });
 
