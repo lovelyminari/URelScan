@@ -14,6 +14,7 @@
     <!-- additivity 는 아래 보이는 <root> (Root Logger)의 Appender에 대한 상속 유무를 뜻한다. -->
     <!-- 자세한 내용은 이후에 설명하겠다. -->
     <logger name="com.lguplus" level="DEBUG" />
+    <logger name="com.github.javaparser" level="INFO" />
 
 
     <!-- 기본 로거 ( Root Logger ) -->
