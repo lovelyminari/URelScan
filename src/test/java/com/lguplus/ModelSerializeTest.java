@@ -68,14 +68,14 @@ public class ModelSerializeTest {
         Factory factory = launcher.getFactory();
         factory.getEnvironment().setCompressionType(CompressionType.GZIP);
 
-        File modelFile = new File("/Users/seonmiji/IdeaProjects/Sample/SpoonModelFileEx2.gz");
+        File modelFile = new File("/Users/seonmiji/IdeaProjects/Sample/SpoonModelFileEx3.gz");
         OutputStream fos = new FileOutputStream(modelFile);
         SerializationModelStreamer serializationModelStreamer = new SerializationModelStreamer();
 
         serializationModelStreamer.save(factory, fos);
         log.info("모델 저장까지 실행 완료.");
 
-        File loadedFile = new File("/Users/seonmiji/IdeaProjects/Sample/SpoonModelFileEx2.gz");
+        File loadedFile = new File("/Users/seonmiji/IdeaProjects/Sample/SpoonModelFileEx3.gz");
         serializationModelStreamer.load(new FileInputStream(loadedFile));
         log.info("저장된 모델 로드까지 실행 완료.");
     }
