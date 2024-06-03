@@ -12,6 +12,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.SourceRoot;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import com.github.javaparser.ast.CompilationUnit;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -206,14 +208,11 @@ public class MethodCallTest {
         String FILE_PATH = "/Users/seonmiji/IdeaProjects/nucm-svc-master/src/main/java/com/lguplus/ncube/nucm/online/rvspvs/service/OcmpTrmDvchLikgMService.java";
         String methdDclr = "public void receiveOcmpDevUsimChng(OcmpUsimDvchInfoLikgDTO data) throws Exception";
 
-        TypeSolver javaSolver = new JavaParserTypeSolver(SRC_PATH);
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(javaSolver);
-
         log.info("================pre=================");
 
         /* 0. 모든 소스 파일 CompilationUnit으로 parsing */
         SourceRoot sourceRoot = new SourceRoot(Paths.get(SRC_PATH));
-        sourceRoot.getParserConfiguration().setSymbolResolver(symbolSolver);
+        sourceRoot.getParserConfiguration().setSymbolResolver(getSymbolSolver());
         sourceRoot.tryToParse();
         List<CompilationUnit> cuList = sourceRoot.getCompilationUnits();
 
@@ -223,7 +222,7 @@ public class MethodCallTest {
         log.info("================0=================");
 
         /* 1. 대상 메소드의 메소드 시그니처 추출 */
-        StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
+        StaticJavaParser.getParserConfiguration().setSymbolResolver(sourceRoot.getParserConfiguration().getSymbolResolver().get());
         CompilationUnit trgtCu = StaticJavaParser.parse(new File(FILE_PATH));
         List<MethodDeclaration> trgtList = new ArrayList<>();
 
@@ -244,8 +243,10 @@ public class MethodCallTest {
 
         log.info("================1=================");
 
-        /* cuList.forEach(cu -> {
-            cu.accept(new VoidVisitorAdapter<Object>() {
+        log.info("cuList = {}", cuList.size());
+
+        cuList.forEach(cu -> {
+            /*cu.accept(new VoidVisitorAdapter<Object>() {
                 @Override
                 public void visit(MethodCallExpr mce, Object arg) {
                     super.visit(mce, arg);
@@ -255,17 +256,70 @@ public class MethodCallTest {
                         log.info("Caller Class = {}", className);
                     }
                 }
-            }, null);
+            }, null);*/
 
             List<MethodCallExpr> list = cu.findAll(MethodCallExpr.class);
+            log.info("MethodCallExpr list size = {}", list.size());
             list.stream().forEach(e -> {
                 if(e.resolve().getQualifiedSignature().equals(trgt.resolve().getQualifiedSignature())) {
                     String className = e.getParentNode().map(x -> (ClassOrInterfaceDeclaration) x).map(NodeWithSimpleName::getNameAsString).orElse("");
                     log.info("Caller Class = {}", className);
                 }
             });
-        }); */
+        });
 
+
+    }
+
+    private JavaSymbolSolver getSymbolSolver() throws IOException {
+        String LIBS_PATH = "/Users/seonmiji/IdeaProjects/ucube_maven/repository";
+
+        CombinedTypeSolver combinedSolver = new CombinedTypeSolver();
+        TypeSolver jreSolver = new ReflectionTypeSolver();
+        combinedSolver.add(jreSolver);
+
+        addLibFiles(LIBS_PATH, combinedSolver);
+
+        return new JavaSymbolSolver(combinedSolver);
+    }
+
+    // 재귀함수
+    private void addLibFiles(String strDirPath, CombinedTypeSolver combinedSolver) throws IOException {
+        File path = new File(strDirPath);
+        File[] fList = path.listFiles();
+
+        for( int i = 0; i < fList.length; i++ ) {
+            if(fList[i].isFile() && fList[i].getName().endsWith(".jar")) {
+                log.info("Current File name is [{}]", fList[i].getName());
+                TypeSolver jarSolver = new JarTypeSolver(fList[i]);
+                combinedSolver.add(jarSolver);
+            }
+            else if(fList[i].isDirectory()) {
+                addLibFiles(fList[i].getPath(), combinedSolver);  // 재귀함수 호출
+            }
+        }
+    }
+
+    @Test
+    public void test_XMLSaveFromSourceRoot() throws IOException {
+        String SRC_PATH = "/Users/seonmiji/IdeaProjects/RelScan/src/main/java";
+        //String JAR_PATH = "/Users/seonmiji/IdeaProjects/RelScan/target/RelScan-1.0-SNAPSHOT.jar";
+
+        //TypeSolver jarSolver = new JarTypeSolver(JAR_PATH);
+        //JavaSymbolSolver symbolSolver = new JavaSymbolSolver(jarSolver);
+        TypeSolver javaSolver = new JavaParserTypeSolver(SRC_PATH);
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(javaSolver);
+
+        log.info("================1=================");
+
+        /* 1. 모든 소스 파일 parsing 후 XML 파일로 저장 */
+        SourceRoot sourceRoot = new MySourceRoot(Paths.get(SRC_PATH));
+        sourceRoot.getParserConfiguration().setSymbolResolver(symbolSolver);
+
+        log.info("================2=================");
+
+        sourceRoot.tryToParse();
+        log.info("================3=================");
 
     }
 }
