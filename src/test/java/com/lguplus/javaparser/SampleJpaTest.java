@@ -75,13 +75,14 @@ public class SampleJpaTest {
         });*/
     }
 
-    //@Test
+    @Test
     public void parseJavaWithSymbolSolverForJar() throws Exception {
-        String JAR_PATH = "/Users/seonmiji/IdeaProjects/sample-jpa/sample-jpa/target/sample-jpa-0.0.1-RELEASE.jar";
+        String SRC_PATH = "/Users/seonmiji/IdeaProjects/sample-jpa/sample-jpa/target/jar/BOOT-INF/classes";
+        String JAR_PATH = "/Users/seonmiji/IdeaProjects/sample-jpa/sample-jpa/target/app2.jar"; //SRC_PATH에서 "jar -cvf app2.jar ." 명령어 실행한 jar 파일
         String FILE_PATH = "/Users/seonmiji/IdeaProjects/sample-jpa/sample-jpa/src/main/java/com/lguplus/ucube/samplejpa/web/basic/cust/service/BasicCustService.java";
 
-        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new MyJarTypeSolver(JAR_PATH));
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        TypeSolver typeSolver = new JarTypeSolver(JAR_PATH);
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
 
         /* 1. 찾고자 하는 메소드의 소스 파일 parsing */
         StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
